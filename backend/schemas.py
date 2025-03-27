@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from typing import Optional, List
+from typing import Optional, List, Dict
 from datetime import datetime
 
 # Pydantic Models for Request/Response
@@ -33,6 +33,32 @@ class TrackItem(BaseModel):
 class SearchResponse(BaseModel):
     results: List[TrackItem]
     query: str
+    
+    class Config:
+        orm_mode = True
+
+# Track models
+class TrackBase(BaseModel):
+    spotify_uid: str
+    host: Optional[str] = None
+    link: Optional[str] = None
+    name: str
+    author: str
+    fails: Optional[int] = 0
+    result: Optional[bool] = False
+
+class TrackCreate(TrackBase):
+    pass
+
+class TrackUpdate(BaseModel):
+    host: Optional[str] = None
+    link: Optional[str] = None
+    fails: Optional[int] = None
+    result: Optional[bool] = None
+
+class TrackResponse(TrackBase):
+    id: int
+    created_at: datetime
     
     class Config:
         orm_mode = True

@@ -8,6 +8,7 @@ import Dashboard from './components/Dashboard';
 import Playlists from './components/Playlists';
 import NewPlaylist from './components/NewPlaylist';
 import PlaylistDetail from './components/PlaylistDetail';
+import Tracks from './components/Tracks';
 import ProtectedRoute from './components/ProtectedRoute';
 import './App.css';
 
@@ -27,6 +28,7 @@ function App() {
             <Route path="/playlists" element={<Playlists />} />
             <Route path="/playlists/new" element={<NewPlaylist />} />
             <Route path="/playlists/:id" element={<PlaylistDetail />} />
+            <Route path="/tracks" element={<Tracks />} />
           </Route>
           
           {/* Redirect any unknown routes to home */}

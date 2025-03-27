@@ -160,6 +160,25 @@ async def delete_playlist(playlist_id: int, current_user: User = Depends(get_cur
     db.commit()
     return None
 
+@router.get("/public-playlists", response_model=List[PlaylistResponse], tags=["public"])
+async def get_public_playlists(db: Session = Depends(get_db)):
+    """
+    Get all public playlists. This endpoint is accessible without authentication.
+    
+    Args:
+        db: Database session (injected by dependency)
+        
+    Returns:
+        List[PlaylistResponse]: List of public playlists
+    """
+    playlists = db.query(Playlist).filter(Playlist.publicity == "public").all()
+    
+    # Add track count to each playlist
+    for playlist in playlists:
+        playlist.track_count = db.query(PlaylistTrack).filter(PlaylistTrack.playlist_id == playlist.id).count()
+    
+    return playlists
+
 # Playlist Track Endpoints
 @router.post("/playlists/{playlist_id}/tracks", response_model=PlaylistTrackResponse, status_code=status.HTTP_201_CREATED)
 async def add_track_to_playlist(

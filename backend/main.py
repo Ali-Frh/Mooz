@@ -105,6 +105,10 @@ app.include_router(search_router)
 from playlists import router as playlist_router
 app.include_router(playlist_router)
 
+# Include the tracks router
+from tracks import router as tracks_router
+app.include_router(tracks_router)
+
 # Run the application with: uvicorn main:app --reload
 if __name__ == "__main__":
     import uvicorn

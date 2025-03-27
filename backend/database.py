@@ -50,5 +50,18 @@ class PlaylistTrack(Base):
     # Relationship with playlist
     playlist = relationship("Playlist", back_populates="tracks")
 
+class Track(Base):
+    __tablename__ = "tracks"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    spotify_uid = Column(String, index=True)
+    host = Column(String)
+    link = Column(String)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    fails = Column(Integer, default=0)
+    name = Column(String)
+    author = Column(String)
+    result = Column(Boolean, default=False)
+    
 # Create tables
 Base.metadata.create_all(bind=engine)

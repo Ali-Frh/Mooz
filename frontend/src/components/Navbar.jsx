@@ -18,6 +18,7 @@ const Navbar = () => {
           <>
             <Link to="/dashboard" className="nav-link">Dashboard</Link>
             <Link to="/playlists" className="nav-link">Playlists</Link>
+            <Link to="/tracks" className="nav-link">Tracks</Link>
             <button onClick={logout} className="nav-button logout">
               Logout
             </button>

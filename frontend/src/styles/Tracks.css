@@ -1,0 +1,101 @@
+.tracks-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.tracks-loading,
+.tracks-error {
+  text-align: center;
+  margin-top: 50px;
+  font-size: 18px;
+}
+
+.tracks-error {
+  color: #e74c3c;
+}
+
+.tracks-info {
+  margin-bottom: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.tracks-list-container {
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+.no-tracks {
+  padding: 40px;
+  text-align: center;
+  color: #7f8c8d;
+}
+
+.tracks-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.tracks-table th,
+.tracks-table td {
+  padding: 12px 15px;
+  text-align: left;
+  border-bottom: 1px solid #eee;
+}
+
+.tracks-table th {
+  background-color: #f8f9fa;
+  font-weight: 600;
+  color: #2c3e50;
+}
+
+.tracks-table tr:hover {
+  background-color: #f5f5f5;
+}
+
+.track-success {
+  background-color: rgba(46, 204, 113, 0.1);
+}
+
+.track-pending {
+  background-color: rgba(241, 196, 15, 0.1);
+}
+
+.track-uid {
+  font-family: monospace;
+  font-size: 0.9em;
+  color: #7f8c8d;
+}
+
+.play-button {
+  background-color: #3498db;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.play-button:hover {
+  background-color: #2980b9;
+  transform: scale(1.05);
+}
+
+.play-button.playing {
+  background-color: #e74c3c;
+}
+
+.play-button:disabled {
+  background-color: #bdc3c7;
+  cursor: not-allowed;
+}
