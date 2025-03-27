@@ -5,6 +5,9 @@ import Home from './components/Home';
 import Login from './components/Login';
 import Register from './components/Register';
 import Dashboard from './components/Dashboard';
+import Playlists from './components/Playlists';
+import NewPlaylist from './components/NewPlaylist';
+import PlaylistDetail from './components/PlaylistDetail';
 import ProtectedRoute from './components/ProtectedRoute';
 import './App.css';
 
@@ -21,6 +24,9 @@ function App() {
           {/* Protected Routes */}
           <Route element={<ProtectedRoute />}>
             <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/playlists" element={<Playlists />} />
+            <Route path="/playlists/new" element={<NewPlaylist />} />
+            <Route path="/playlists/:id" element={<PlaylistDetail />} />
           </Route>
           
           {/* Redirect any unknown routes to home */}

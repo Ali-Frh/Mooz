@@ -1,4 +1,5 @@
 import { useAuth } from '../context/AuthContext';
+import { Link } from 'react-router-dom';
 import '../styles/Dashboard.css';
 
 const Dashboard = () => {
@@ -39,6 +40,14 @@ const Dashboard = () => {
             <h3>Account Status</h3>
             <p>Your account is {user?.is_active ? 'active' : 'inactive'}.</p>
             <p>You are successfully authenticated with JWT!</p>
+          </div>
+
+          <div className="dashboard-card">
+            <h3>Your Music</h3>
+            <p>Manage your music collection with playlists.</p>
+            <Link to="/playlists" className="dashboard-button">
+              View Playlists
+            </Link>
           </div>
         </div>
       </div>

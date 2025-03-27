@@ -115,6 +115,23 @@
   line-height: 1.5;
 }
 
+.dashboard-button {
+  display: inline-block;
+  background-color: #1db954;
+  color: white;
+  text-decoration: none;
+  padding: 0.7rem 1.5rem;
+  border-radius: 8px;
+  font-weight: 600;
+  margin-top: 1rem;
+  transition: background-color 0.3s ease, transform 0.3s ease;
+}
+
+.dashboard-button:hover {
+  background-color: #1ed760;
+  transform: translateY(-2px);
+}
+
 /* Responsive adjustments */
 @media (max-width: 768px) {
   .dashboard-container {

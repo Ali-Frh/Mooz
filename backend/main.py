@@ -101,6 +101,10 @@ async def root():
 from search import router as search_router
 app.include_router(search_router)
 
+# Include the playlist router
+from playlists import router as playlist_router
+app.include_router(playlist_router)
+
 # Run the application with: uvicorn main:app --reload
 if __name__ == "__main__":
     import uvicorn

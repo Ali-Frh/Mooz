@@ -1,5 +1,6 @@
 from pydantic import BaseModel
 from typing import Optional, List
+from datetime import datetime
 
 # Pydantic Models for Request/Response
 class UserCreate(BaseModel):
@@ -32,6 +33,51 @@ class TrackItem(BaseModel):
 class SearchResponse(BaseModel):
     results: List[TrackItem]
     query: str
+    
+    class Config:
+        orm_mode = True
+
+# Playlist Track models
+class PlaylistTrackBase(BaseModel):
+    spotify_uid: str
+    name: str
+    author: str
+
+class PlaylistTrackCreate(PlaylistTrackBase):
+    pass
+
+class PlaylistTrackResponse(PlaylistTrackBase):
+    id: int
+    playlist_id: int
+    added_at: datetime
+    
+    class Config:
+        orm_mode = True
+
+# Playlist models
+class PlaylistBase(BaseModel):
+    name: str
+    publicity: str = "private"  # Default to private
+
+class PlaylistCreate(PlaylistBase):
+    pass
+
+class PlaylistUpdate(BaseModel):
+    name: Optional[str] = None
+    publicity: Optional[str] = None
+
+class PlaylistResponse(PlaylistBase):
+    id: int
+    owner_id: int
+    created_at: datetime
+    modified_at: datetime
+    track_count: Optional[int] = 0
+    
+    class Config:
+        orm_mode = True
+
+class PlaylistDetailResponse(PlaylistResponse):
+    tracks: List[PlaylistTrackResponse] = []
     
     class Config:
         orm_mode = True

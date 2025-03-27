@@ -1,0 +1,343 @@
+.playlist-detail-container {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 2rem;
+  }
+  
+  .playlist-detail-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    background-color: #fff;
+    padding: 1.5rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  }
+  
+  .playlist-info {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+  
+  .playlist-info h1 {
+    margin: 0;
+    color: #333;
+    font-size: 1.8rem;
+  }
+  
+  .playlist-actions {
+    display: flex;
+    gap: 1rem;
+  }
+  
+  .edit-playlist-button,
+  .back-button {
+    padding: 0.6rem 1.2rem;
+    border-radius: 4px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s;
+  }
+  
+  .edit-playlist-button {
+    background-color: #f0f0f0;
+    color: #333;
+    border: 1px solid #ddd;
+  }
+  
+  .edit-playlist-button:hover {
+    background-color: #e0e0e0;
+  }
+  
+  .back-button {
+    background-color: #f8f9fa;
+    color: #6c757d;
+    border: 1px solid #ddd;
+  }
+  
+  .back-button:hover {
+    background-color: #e9ecef;
+  }
+  
+  .playlist-edit-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    width: 100%;
+  }
+  
+  .playlist-edit-input,
+  .playlist-edit-select {
+    padding: 0.75rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 1rem;
+  }
+  
+  .playlist-edit-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+    margin-top: 1rem;
+  }
+  
+  .cancel-edit-button,
+  .save-edit-button {
+    padding: 0.6rem 1.2rem;
+    border-radius: 4px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  
+  .cancel-edit-button {
+    background-color: #f8f9fa;
+    color: #6c757d;
+    border: 1px solid #ddd;
+  }
+  
+  .save-edit-button {
+    background-color: #1db954;
+    color: white;
+    border: none;
+  }
+  
+  .save-edit-button:hover {
+    background-color: #1ed760;
+  }
+  
+  .playlist-metadata {
+    display: flex;
+    gap: 2rem;
+    color: #6c757d;
+    margin-bottom: 2rem;
+    font-size: 0.9rem;
+  }
+  
+  .playlist-tracks-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+  }
+  
+  .playlist-tracks-header h2 {
+    margin: 0;
+    color: #333;
+  }
+  
+  .add-track-button {
+    background-color: #1db954;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 0.6rem 1.2rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s;
+  }
+  
+  .add-track-button:hover {
+    background-color: #1ed760;
+  }
+  
+  .track-search-section {
+    background-color: #fff;
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  }
+  
+  .search-form {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+  
+  .search-input {
+    flex: 1;
+    padding: 0.75rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 1rem;
+  }
+  
+  .search-button {
+    background-color: #1db954;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 0 1.5rem;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  
+  .search-button:hover {
+    background-color: #1ed760;
+  }
+  
+  .search-button:disabled {
+    background-color: #a3e4b9;
+    cursor: not-allowed;
+  }
+  
+  .search-results h3 {
+    margin-top: 0;
+    margin-bottom: 1rem;
+    color: #333;
+    font-size: 1.2rem;
+  }
+  
+  .search-results-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  
+  .search-result-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    border-bottom: 1px solid #eee;
+  }
+  
+  .search-result-item:last-child {
+    border-bottom: none;
+  }
+  
+  .result-info {
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .result-track {
+    font-weight: 600;
+    color: #333;
+  }
+  
+  .result-artist {
+    color: #6c757d;
+    font-size: 0.9rem;
+  }
+  
+  .add-to-playlist-button {
+    background-color: #1db954;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 0.5rem 1rem;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  
+  .add-to-playlist-button:hover {
+    background-color: #1ed760;
+  }
+  
+  .playlist-tracks {
+    background-color: #fff;
+    border-radius: 8px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  }
+  
+  .no-tracks {
+    text-align: center;
+    padding: 2rem;
+    color: #6c757d;
+  }
+  
+  .tracks-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  
+  .track-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    border-bottom: 1px solid #eee;
+  }
+  
+  .track-item:last-child {
+    border-bottom: none;
+  }
+  
+  .track-info {
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .track-id {
+    font-size: 0.8rem;
+    color: #999;
+  }
+  
+  .track-name {
+    font-weight: 600;
+    color: #333;
+    margin: 0.2rem 0;
+  }
+  
+  .track-author {
+    color: #666;
+    font-size: 0.9rem;
+    margin-bottom: 0.2rem;
+  }
+  
+  .track-added {
+    color: #6c757d;
+    font-size: 0.8rem;
+  }
+  
+  .remove-track-button {
+    background-color: #f8f9fa;
+    color: #e74c3c;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 0.5rem 1rem;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  
+  .remove-track-button:hover {
+    background-color: #fee;
+  }
+  
+  .playlist-detail-loading,
+  .playlist-detail-error {
+    text-align: center;
+    padding: 2rem;
+    font-size: 1.2rem;
+  }
+  
+  .playlist-detail-error {
+    color: #e74c3c;
+  }
+  
+  @media (max-width: 768px) {
+    .playlist-detail-header {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 1rem;
+    }
+    
+    .playlist-actions {
+      width: 100%;
+    }
+    
+    .edit-playlist-button,
+    .back-button {
+      flex: 1;
+      text-align: center;
+    }
+    
+    .search-form {
+      flex-direction: column;
+    }
+  }
