@@ -7,7 +7,7 @@ import '../styles/PlaylistDetail.css';
 
 const PlaylistDetail = () => {
   const { id } = useParams();
-  const { user } = useAuth();
+  const { user, publicAxios } = useAuth();
   const navigate = useNavigate();
   const [playlist, setPlaylist] = useState(null);
   const [tracks, setTracks] = useState([]);
@@ -21,6 +21,7 @@ const PlaylistDetail = () => {
   const [editName, setEditName] = useState('');
   const [editPublicity, setEditPublicity] = useState('private');
   const [showShareModal, setShowShareModal] = useState(false);
+  const [showLoginModal, setShowLoginModal] = useState(false);
   
   // Use the global music player context
   const { 
@@ -35,7 +36,9 @@ const PlaylistDetail = () => {
   useEffect(() => {
     const fetchPlaylist = async () => {
       try {
-        const response = await axios.get(`/playlists/${id}`);
+        // Use the publicAxios instance for unauthenticated access
+        const response = await publicAxios.get(`/playlists/${id}`);
+        
         setPlaylist(response.data);
         setTracks(response.data.tracks || []);
         setEditName(response.data.name);
@@ -46,7 +49,13 @@ const PlaylistDetail = () => {
         document.title = `${response.data.name} | Mooz`;
       } catch (err) {
         console.error('Error fetching playlist:', err);
-        setError('Failed to load playlist. Please try again later.');
+        
+        // If error is 403 and playlist is not public, show appropriate message
+        if (err.response && err.response.status === 403) {
+          setError('This playlist is private. Please log in to view it.');
+        } else {
+          setError('Failed to load playlist. Please try again later.');
+        }
         setLoading(false);
       }
     };
@@ -57,7 +66,7 @@ const PlaylistDetail = () => {
     return () => {
       document.title = 'Mooz';
     };
-  }, [id]);
+  }, [id, user]);
 
   const handleSearch = async (e) => {
     e.preventDefault();
@@ -78,6 +87,11 @@ const PlaylistDetail = () => {
   };
 
   const handleAddTrack = async (track) => {
+    if (!user) {
+      setShowLoginModal(true);
+      return;
+    }
+    
     try {
       await axios.post(`/playlists/${id}/tracks`, {
         spotify_uid: track.id,
@@ -101,6 +115,11 @@ const PlaylistDetail = () => {
   };
 
   const handleRemoveTrack = async (trackId) => {
+    if (!user) {
+      setShowLoginModal(true);
+      return;
+    }
+    
     try {
       await axios.delete(`/playlists/${id}/tracks/${trackId}`);
       
@@ -113,6 +132,11 @@ const PlaylistDetail = () => {
   };
 
   const handleUpdatePlaylist = async () => {
+    if (!user) {
+      setShowLoginModal(true);
+      return;
+    }
+    
     try {
       const response = await axios.put(`/playlists/${id}`, {
         name: editName,
@@ -142,6 +166,12 @@ const PlaylistDetail = () => {
   };
 
   const playTrack = async (track) => {
+    // If not logged in, show login modal
+    if (!user) {
+      setShowLoginModal(true);
+      return;
+    }
+    
     try {
       // Request the track from the server
       const response = await axios.post(`/tracks/play/${track.spotify_uid}`);
@@ -216,6 +246,8 @@ const PlaylistDetail = () => {
     return <div className="playlist-detail-error">{error}</div>;
   }
 
+  const isOwner = user && playlist.owner_id === user.id;
+
   return (
     <div className="playlist-detail-container">
       <div className="playlist-detail-header">
@@ -272,12 +304,14 @@ const PlaylistDetail = () => {
                   <i className="fas fa-share-alt"></i> Share
                 </button>
               )}
-              <button 
-                className="edit-playlist-button"
-                onClick={() => setIsEditing(true)}
-              >
-                Edit
-              </button>
+              {isOwner && (
+                <button 
+                  className="edit-playlist-button"
+                  onClick={() => setIsEditing(true)}
+                >
+                  Edit
+                </button>
+              )}
               <button 
                 className="back-button"
                 onClick={() => navigate('/playlists')}
@@ -295,15 +329,17 @@ const PlaylistDetail = () => {
         <p>Tracks: {tracks.length}</p>
       </div>
 
-      <div className="playlist-tracks-header">
-        <h2>Tracks</h2>
-        <button 
-          className="add-track-button"
-          onClick={() => setShowSearch(!showSearch)}
-        >
-          {showSearch ? 'Cancel' : '+ Add Track'}
-        </button>
-      </div>
+      {isOwner && (
+        <div className="playlist-tracks-header">
+          <h2>Tracks</h2>
+          <button 
+            className="add-track-button"
+            onClick={() => setShowSearch(!showSearch)}
+          >
+            {showSearch ? 'Cancel' : '+ Add Track'}
+          </button>
+        </div>
+      )}
 
       {showSearch && (
         <div className="track-search-section">
@@ -352,7 +388,7 @@ const PlaylistDetail = () => {
         {tracks.length === 0 ? (
           <div className="no-tracks">
             <p>This playlist doesn't have any tracks yet.</p>
-            <p>Click the "Add Track" button to search and add tracks.</p>
+            {isOwner && <p>Click the "Add Track" button to search and add tracks.</p>}
           </div>
         ) : (
           <ul className="tracks-list">
@@ -373,13 +409,15 @@ const PlaylistDetail = () => {
                     >
                       {isCurrentTrack ? (isPlaying ? '⏸️' : '▶️') : '▶️'}
                     </button>
-                    <button 
-                      className="remove-track-button"
-                      onClick={() => handleRemoveTrack(track.id)}
-                      aria-label="Remove track"
-                    >
-                      <i className="fas fa-trash"></i>
-                    </button>
+                    {isOwner && (
+                      <button 
+                        className="remove-track-button"
+                        onClick={() => handleRemoveTrack(track.id)}
+                        aria-label="Remove track"
+                      >
+                        <i className="fas fa-trash"></i>
+                      </button>
+                    )}
                   </div>
                 </li>
               );
@@ -415,6 +453,40 @@ const PlaylistDetail = () => {
                   onClick={copyShareLink}
                 >
                   Copy
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+      
+      {/* Login Modal */}
+      {showLoginModal && (
+        <div className="modal-overlay">
+          <div className="login-modal">
+            <div className="modal-header">
+              <h3>Login Required</h3>
+              <button 
+                className="close-modal-button"
+                onClick={() => setShowLoginModal(false)}
+              >
+                &times;
+              </button>
+            </div>
+            <div className="modal-content">
+              <p>You need to be logged in to play tracks or make changes to playlists.</p>
+              <div className="login-modal-actions">
+                <button 
+                  className="login-button"
+                  onClick={() => navigate('/login')}
+                >
+                  Login
+                </button>
+                <button 
+                  className="register-button"
+                  onClick={() => navigate('/register')}
+                >
+                  Register
                 </button>
               </div>
             </div>

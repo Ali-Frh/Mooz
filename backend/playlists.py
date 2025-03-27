@@ -4,7 +4,7 @@ from typing import List
 from datetime import datetime
 
 # Import from our modules
-from dependencies import get_db, get_current_active_user
+from dependencies import get_db, get_current_active_user, get_optional_user
 from database import User, Playlist, PlaylistTrack
 from schemas import PlaylistCreate, PlaylistResponse, PlaylistUpdate, PlaylistDetailResponse, PlaylistTrackCreate, PlaylistTrackResponse
 
@@ -55,13 +55,14 @@ async def create_playlist(playlist: PlaylistCreate, current_user: User = Depends
     return db_playlist
 
 @router.get("/playlists/{playlist_id}", response_model=PlaylistDetailResponse)
-async def get_playlist(playlist_id: int, current_user: User = Depends(get_current_active_user), db: Session = Depends(get_db)):
+async def get_playlist(playlist_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_optional_user)):
     """
     Get a specific playlist by ID with its tracks.
+    Public playlists can be accessed without authentication.
     
     Args:
         playlist_id: The ID of the playlist to retrieve
-        current_user: The authenticated user (injected by dependency)
+        current_user: The authenticated user (optional)
         db: Database session (injected by dependency)
         
     Returns:
@@ -74,8 +75,8 @@ async def get_playlist(playlist_id: int, current_user: User = Depends(get_curren
             detail=f"Playlist with ID {playlist_id} not found"
         )
     
-    # Check if the user is the owner of the playlist or if the playlist is public
-    if playlist.owner_id != current_user.id and playlist.publicity != "public":
+    # Check if the playlist is public or if the user is the owner
+    if playlist.publicity != "public" and (not current_user or playlist.owner_id != current_user.id):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="You don't have permission to access this playlist"

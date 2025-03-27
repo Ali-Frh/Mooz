@@ -24,13 +24,13 @@ function App() {
             <Route path="/" element={<Home />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
+            <Route path="/playlists/:id" element={<PlaylistDetail />} />
             
             {/* Protected Routes */}
             <Route element={<ProtectedRoute />}>
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/playlists" element={<Playlists />} />
               <Route path="/playlists/new" element={<NewPlaylist />} />
-              <Route path="/playlists/:id" element={<PlaylistDetail />} />
               <Route path="/tracks" element={<Tracks />} />
             </Route>
             

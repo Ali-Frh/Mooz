@@ -1,5 +1,8 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useMusicPlayer } from '../context/MusicPlayerContext';
+import { useAuth } from '../context/AuthContext';
+import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 import '../styles/GlobalMusicPlayer.css';
 
 const GlobalMusicPlayer = () => {
@@ -9,15 +12,122 @@ const GlobalMusicPlayer = () => {
     currentTime, 
     duration, 
     volume,
+    playTrack,
     togglePlayPause, 
     seekTo, 
     handleVolumeChange, 
     formatTime,
     stopPlayback
   } = useMusicPlayer();
+  
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const [currentPlaylist, setCurrentPlaylist] = useState([]);
+  const [sourcePlaylistId, setSourcePlaylistId] = useState(null);
+  const [loading, setLoading] = useState(false);
+  
+  // Fetch tracks when a track is playing to enable next/previous functionality
+  useEffect(() => {
+    if (playingTrack) {
+      const fetchTracks = async () => {
+        setLoading(true);
+        try {
+          // First try to get all tracks
+          const response = await axios.get('/tracks');
+          if (response.data && response.data.length > 0) {
+            // Filter tracks that have a valid link
+            const validTracks = response.data.filter(track => track.result && track.link);
+            setCurrentPlaylist(validTracks);
+          }
+        } catch (error) {
+          console.error('Error fetching tracks for playlist:', error);
+        } finally {
+          setLoading(false);
+        }
+      };
+      
+      // Try to find the source playlist for this track
+      const findSourcePlaylist = async () => {
+        if (!user) return;
+        
+        try {
+          // Get all playlists
+          const response = await axios.get('/public-playlists');
+          if (response.data && response.data.length > 0) {
+            // Check each playlist for the current track
+            for (const playlist of response.data) {
+              const playlistDetailResponse = await axios.get(`/playlists/${playlist.id}`);
+              const tracks = playlistDetailResponse.data.tracks || [];
+              
+              // If the playlist contains the current track, set it as the source
+              if (tracks.some(track => track.spotify_uid === playingTrack.spotify_uid)) {
+                setSourcePlaylistId(playlist.id);
+                setCurrentPlaylist(tracks);
+                return;
+              }
+            }
+          }
+        } catch (error) {
+          console.error('Error finding source playlist:', error);
+        }
+      };
+      
+      if (user) { // Only fetch if user is logged in
+        fetchTracks();
+        findSourcePlaylist();
+      }
+    }
+  }, [playingTrack, user]);
 
   // Hide player when no track is playing
   if (!playingTrack) return null;
+  
+  // Find current track index in playlist
+  const currentIndex = currentPlaylist.findIndex(track => 
+    // Match by spotify_uid for more reliable matching across different versions
+    track.spotify_uid === playingTrack.spotify_uid
+  );
+  
+  const handlePlayNext = () => {
+    if (currentIndex === -1 || currentIndex >= currentPlaylist.length - 1) return;
+    
+    const nextTrack = currentPlaylist[currentIndex + 1];
+    playTrackWithLink(nextTrack);
+  };
+
+  const handlePlayPrevious = () => {
+    if (currentIndex <= 0) return;
+    
+    const prevTrack = currentPlaylist[currentIndex - 1];
+    playTrackWithLink(prevTrack);
+  };
+  
+  const playTrackWithLink = async (track) => {
+    try {
+      // Request the track from the server
+      const response = await axios.post(`/tracks/play/${track.spotify_uid}`);
+      
+      if (response.data.status === 'success') {
+        // Track is ready to play
+        playTrack({
+          id: track.id,
+          name: track.name,
+          author: track.author,
+          spotify_uid: track.spotify_uid,
+          link: response.data.track.link,
+          result: true
+        });
+      }
+    } catch (error) {
+      console.error('Error playing track:', error);
+    }
+  };
+  
+  const goToSourcePlaylist = () => {
+    if (sourcePlaylistId) {
+      navigate(`/playlists/${sourcePlaylistId}`);
+    }
+  };
 
   return (
     <div className="global-music-player">
@@ -32,11 +142,29 @@ const GlobalMusicPlayer = () => {
       
       <div className="player-controls">
         <button 
+          className="player-control-button prev-button" 
+          onClick={handlePlayPrevious}
+          disabled={currentIndex <= 0}
+          aria-label="Previous track"
+        >
+          <i className="fas fa-step-backward"></i>
+        </button>
+        
+        <button 
           className="player-control-button play-pause-button" 
           onClick={togglePlayPause}
           aria-label={isPlaying ? 'Pause' : 'Play'}
         >
           {isPlaying ? <i className="fas fa-pause"></i> : <i className="fas fa-play"></i>}
+        </button>
+        
+        <button 
+          className="player-control-button next-button" 
+          onClick={handlePlayNext}
+          disabled={currentIndex === -1 || currentIndex >= currentPlaylist.length - 1}
+          aria-label="Next track"
+        >
+          <i className="fas fa-step-forward"></i>
         </button>
         
         <button 
@@ -46,6 +174,17 @@ const GlobalMusicPlayer = () => {
         >
           <i className="fas fa-stop"></i>
         </button>
+        
+        {sourcePlaylistId && (
+          <button 
+            className="player-control-button playlist-button" 
+            onClick={goToSourcePlaylist}
+            aria-label="Go to playlist"
+            title="Go to source playlist"
+          >
+            <i className="fas fa-list"></i>
+          </button>
+        )}
       </div>
       
       <div className="player-progress">

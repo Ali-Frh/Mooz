@@ -60,12 +60,22 @@
   border-radius: 50%;
 }
 
-.player-control-button:hover {
+.player-control-button:hover:not(:disabled) {
   transform: scale(1.1);
+  color: #1db954;
 }
 
 .player-control-button:disabled {
   color: #5a5a5a;
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.prev-button, .next-button {
+  cursor: pointer;
+}
+
+.prev-button:disabled, .next-button:disabled {
   cursor: not-allowed;
 }
 
@@ -80,6 +90,16 @@
 .stop-button {
   background-color: #e74c3c;
   color: white;
+}
+
+.playlist-button {
+  background-color: #1db954;
+  color: white;
+}
+
+.playlist-button:hover {
+  background-color: #1ed760;
+  transform: scale(1.1);
 }
 
 .player-progress {

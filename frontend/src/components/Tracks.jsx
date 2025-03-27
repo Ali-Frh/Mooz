@@ -222,7 +222,20 @@ const Tracks = () => {
                       <td>{mainTrack.name}</td>
                       <td>{mainTrack.author}</td>
                       <td className="track-uid">{mainTrack.spotify_uid}</td>
-                      <td>{mainTrack.host || 'N/A'}</td>
+                      <td>
+                        {mainTrack.link ? (
+                          <a 
+                            href={mainTrack.link} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="track-link"
+                          >
+                            {mainTrack.host || 'Download'}
+                          </a>
+                        ) : (
+                          mainTrack.host || 'N/A'
+                        )}
+                      </td>
                       <td>{mainTrack.result ? 'Success' : 'Pending'}</td>
                       <td>{mainTrack.fails}</td>
                       <td>{formatDate(mainTrack.created_at)}</td>
@@ -255,7 +268,20 @@ const Tracks = () => {
                         <td className="track-child-name">{track.name}</td>
                         <td>{track.author}</td>
                         <td className="track-uid">{track.spotify_uid}</td>
-                        <td>{track.host || 'N/A'}</td>
+                        <td>
+                          {track.link ? (
+                            <a 
+                              href={track.link} 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              className="track-link"
+                            >
+                              {track.host || 'Download'}
+                            </a>
+                          ) : (
+                            track.host || 'N/A'
+                          )}
+                        </td>
                         <td>{track.result ? 'Success' : 'Pending'}</td>
                         <td>{track.fails}</td>
                         <td>{formatDate(track.created_at)}</td>

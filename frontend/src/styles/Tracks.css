@@ -96,6 +96,19 @@
   color: #7f8c8d;
 }
 
+.track-link {
+  color: #3498db;
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.2s;
+  display: inline-block;
+}
+
+.track-link:hover {
+  color: #2980b9;
+  text-decoration: underline;
+}
+
 .track-actions {
   display: flex;
   gap: 8px;

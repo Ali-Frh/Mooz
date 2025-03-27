@@ -3,15 +3,15 @@ import axios from 'axios';
 
 const AuthContext = createContext();
 
+// Configure axios defaults
+axios.defaults.baseURL = 'http://localhost:8000';
+axios.defaults.withCredentials = false; // Changed to false to avoid CORS preflight issues
+
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(localStorage.getItem('token') || null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-
-  // Configure axios defaults
-  axios.defaults.baseURL = 'http://localhost:8000';
-  axios.defaults.withCredentials = true; // Important for CORS with credentials
   
   // Add token to requests if available
   useEffect(() => {
@@ -110,6 +110,12 @@ export const AuthProvider = ({ children }) => {
     delete axios.defaults.headers.common['Authorization'];
   };
 
+  // Create a public axios instance for unauthenticated requests
+  const publicAxios = axios.create({
+    baseURL: 'http://localhost:8000',
+    withCredentials: false
+  });
+
   const value = {
     user,
     token,
@@ -118,6 +124,7 @@ export const AuthProvider = ({ children }) => {
     register,
     login,
     logout,
+    publicAxios
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
