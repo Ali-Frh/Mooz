@@ -1,6 +1,7 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useMusicPlayer } from '../context/MusicPlayerContext';
 import axios from 'axios';
 import '../styles/PlaylistDetail.css';
 
@@ -19,14 +20,17 @@ const PlaylistDetail = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [editName, setEditName] = useState('');
   const [editPublicity, setEditPublicity] = useState('private');
-  const [playingTrack, setPlayingTrack] = useState(null);
-  const [audioElement, setAudioElement] = useState(null);
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [currentTime, setCurrentTime] = useState(0);
-  const [duration, setDuration] = useState(0);
-  const [volume, setVolume] = useState(0.7);
   const [showShareModal, setShowShareModal] = useState(false);
-  const audioRef = useRef(null);
+  
+  // Use the global music player context
+  const { 
+    playingTrack, 
+    isPlaying, 
+    playTrack: playTrackGlobal, 
+    togglePlayPause, 
+    playNext, 
+    playPrevious 
+  } = useMusicPlayer();
 
   useEffect(() => {
     const fetchPlaylist = async () => {
@@ -102,11 +106,6 @@ const PlaylistDetail = () => {
       
       // Update local state
       setTracks(tracks.filter(track => track.id !== trackId));
-      
-      // If the removed track is currently playing, stop it
-      if (playingTrack === trackId) {
-        stopPlayback();
-      }
     } catch (err) {
       console.error('Error removing track from playlist:', err);
       setError('Failed to remove track from playlist. Please try again later.');
@@ -144,34 +143,19 @@ const PlaylistDetail = () => {
 
   const playTrack = async (track) => {
     try {
-      // Stop current audio if playing
-      stopPlayback();
-
       // Request the track from the server
       const response = await axios.post(`/tracks/play/${track.spotify_uid}`);
       
       if (response.data.status === 'success') {
-        // Track is ready to play
-        const audio = new Audio(response.data.track.link);
-        audio.volume = volume;
-        
-        // Set up event listeners
-        audio.addEventListener('timeupdate', updateProgress);
-        audio.addEventListener('loadedmetadata', () => {
-          setDuration(audio.duration);
+        // Track is ready to play, use the global player
+        playTrackGlobal({
+          id: track.id,
+          name: track.name,
+          author: track.author,
+          spotify_uid: track.spotify_uid,
+          link: response.data.track.link,
+          result: true
         });
-        audio.addEventListener('ended', () => {
-          setIsPlaying(false);
-          playNextTrack(track.id);
-        });
-        
-        audio.play();
-        setAudioElement(audio);
-        setPlayingTrack(track.id);
-        setIsPlaying(true);
-        
-        // Update document title with current track
-        document.title = `${track.name} - ${track.author} | Mooz`;
       } else if (response.data.status === 'pending') {
         // Track is being processed
         // Use SweetAlert to show a notification
@@ -199,81 +183,12 @@ const PlaylistDetail = () => {
     }
   };
   
-  const stopPlayback = () => {
-    if (audioElement) {
-      audioElement.pause();
-      audioElement.removeEventListener('timeupdate', updateProgress);
-      audioElement.removeEventListener('ended', () => {});
-      audioElement.src = '';
-      setAudioElement(null);
-      setIsPlaying(false);
-      setCurrentTime(0);
-      setDuration(0);
-      
-      // Reset document title to playlist name
-      if (playlist) {
-        document.title = `${playlist.name} | Mooz`;
-      }
-    }
+  const handlePlayNext = () => {
+    playNext(tracks);
   };
   
-  const togglePlayPause = () => {
-    if (!audioElement) return;
-    
-    if (isPlaying) {
-      audioElement.pause();
-      setIsPlaying(false);
-    } else {
-      audioElement.play();
-      setIsPlaying(true);
-    }
-  };
-  
-  const updateProgress = () => {
-    if (audioElement) {
-      setCurrentTime(audioElement.currentTime);
-    }
-  };
-  
-  const seekTo = (e) => {
-    if (!audioElement) return;
-    
-    const seekTime = (e.target.value / 100) * duration;
-    audioElement.currentTime = seekTime;
-    setCurrentTime(seekTime);
-  };
-  
-  const handleVolumeChange = (e) => {
-    const newVolume = parseFloat(e.target.value);
-    setVolume(newVolume);
-    
-    if (audioElement) {
-      audioElement.volume = newVolume;
-    }
-  };
-  
-  const formatTime = (time) => {
-    if (isNaN(time)) return '0:00';
-    
-    const minutes = Math.floor(time / 60);
-    const seconds = Math.floor(time % 60).toString().padStart(2, '0');
-    return `${minutes}:${seconds}`;
-  };
-  
-  const playNextTrack = (currentTrackId) => {
-    const currentIndex = tracks.findIndex(track => track.id === currentTrackId);
-    if (currentIndex === -1 || currentIndex === tracks.length - 1) return;
-    
-    const nextTrack = tracks[currentIndex + 1];
-    playTrack(nextTrack);
-  };
-  
-  const playPreviousTrack = (currentTrackId) => {
-    const currentIndex = tracks.findIndex(track => track.id === currentTrackId);
-    if (currentIndex <= 0) return;
-    
-    const previousTrack = tracks[currentIndex - 1];
-    playTrack(previousTrack);
+  const handlePlayPrevious = () => {
+    playPrevious(tracks);
   };
   
   const copyShareLink = () => {
@@ -441,108 +356,37 @@ const PlaylistDetail = () => {
           </div>
         ) : (
           <ul className="tracks-list">
-            {tracks.map(track => (
-              <li key={track.id} className={`track-item ${playingTrack === track.id ? 'playing' : ''}`}>
-                <div className="track-info">
-                  <span className="track-name">{track.name}</span>
-                  <span className="track-author">{track.author}</span>
-                  <span className="track-added">Added: {formatDate(track.added_at)}</span>
-                </div>
-                <div className="track-actions">
-                  <button 
-                    className={`play-track-button ${playingTrack === track.id ? 'playing' : ''}`}
-                    onClick={() => playingTrack === track.id ? togglePlayPause() : playTrack(track)}
-                    aria-label={playingTrack === track.id ? (isPlaying ? 'Pause' : 'Play') : 'Play'}
-                  >
-                    {playingTrack === track.id ? (isPlaying ? '⏸️' : '▶️') : '▶️'}
-                  </button>
-                  <button 
-                    className="remove-track-button"
-                    onClick={() => handleRemoveTrack(track.id)}
-                    aria-label="Remove track"
-                  >
-                    <i className="fas fa-trash"></i>
-                  </button>
-                </div>
-              </li>
-            ))}
+            {tracks.map(track => {
+              const isCurrentTrack = playingTrack && playingTrack.id === track.id;
+              return (
+                <li key={track.id} className={`track-item ${isCurrentTrack ? 'playing' : ''}`}>
+                  <div className="track-info">
+                    <span className="track-name">{track.name}</span>
+                    <span className="track-author">{track.author}</span>
+                    <span className="track-added">Added: {formatDate(track.added_at)}</span>
+                  </div>
+                  <div className="track-actions">
+                    <button 
+                      className={`play-track-button ${isCurrentTrack ? 'playing' : ''}`}
+                      onClick={() => isCurrentTrack ? togglePlayPause() : playTrack(track)}
+                      aria-label={isCurrentTrack ? (isPlaying ? 'Pause' : 'Play') : 'Play'}
+                    >
+                      {isCurrentTrack ? (isPlaying ? '⏸️' : '▶️') : '▶️'}
+                    </button>
+                    <button 
+                      className="remove-track-button"
+                      onClick={() => handleRemoveTrack(track.id)}
+                      aria-label="Remove track"
+                    >
+                      <i className="fas fa-trash"></i>
+                    </button>
+                  </div>
+                </li>
+              );
+            })}
           </ul>
         )}
       </div>
-      
-      {/* Music Player Bar */}
-      {playingTrack && (
-        <div className="music-player-bar">
-          <div className="player-track-info">
-            {tracks.find(track => track.id === playingTrack) && (
-              <>
-                <div className="player-track-name">
-                  {tracks.find(track => track.id === playingTrack).name}
-                </div>
-                <div className="player-track-author">
-                  {tracks.find(track => track.id === playingTrack).author}
-                </div>
-              </>
-            )}
-          </div>
-          
-          <div className="player-controls">
-            <button 
-              className="player-control-button prev-button" 
-              onClick={() => playPreviousTrack(playingTrack)}
-              disabled={tracks.findIndex(track => track.id === playingTrack) <= 0}
-              aria-label="Previous track"
-            >
-              <i className="fas fa-step-backward"></i>
-            </button>
-            
-            <button 
-              className="player-control-button play-pause-button" 
-              onClick={togglePlayPause}
-              aria-label={isPlaying ? 'Pause' : 'Play'}
-            >
-              {isPlaying ? <i className="fas fa-pause"></i> : <i className="fas fa-play"></i>}
-            </button>
-            
-            <button 
-              className="player-control-button next-button" 
-              onClick={() => playNextTrack(playingTrack)}
-              disabled={tracks.findIndex(track => track.id === playingTrack) >= tracks.length - 1}
-              aria-label="Next track"
-            >
-              <i className="fas fa-step-forward"></i>
-            </button>
-          </div>
-          
-          <div className="player-progress">
-            <span className="time-elapsed">{formatTime(currentTime)}</span>
-            <input 
-              type="range" 
-              min="0" 
-              max="100" 
-              value={duration ? (currentTime / duration) * 100 : 0} 
-              onChange={seekTo}
-              className="progress-slider"
-              aria-label="Seek"
-            />
-            <span className="time-total">{formatTime(duration)}</span>
-          </div>
-          
-          <div className="player-volume">
-            <i className="fas fa-volume-up"></i>
-            <input 
-              type="range" 
-              min="0" 
-              max="1" 
-              step="0.01" 
-              value={volume} 
-              onChange={handleVolumeChange}
-              className="volume-slider"
-              aria-label="Volume"
-            />
-          </div>
-        </div>
-      )}
       
       {/* Share Modal */}
       {showShareModal && (

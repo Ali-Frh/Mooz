@@ -27,6 +27,7 @@
   border-radius: 8px;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
   overflow: hidden;
+  overflow-x: auto; /* Enable horizontal scrolling if needed */
 }
 
 .no-tracks {
@@ -65,10 +66,40 @@
   background-color: rgba(241, 196, 15, 0.1);
 }
 
+/* Tree-like structure styles */
+.track-child {
+  height: 40px; /* Make child rows thinner */
+  font-size: 0.9em;
+}
+
+.track-child td {
+  padding-top: 6px;
+  padding-bottom: 6px;
+  border-bottom: 1px dashed #eee;
+}
+
+.track-child-name {
+  position: relative;
+  padding-left: 25px !important; /* Indent the name */
+}
+
+.track-child-name::before {
+  content: '└─';
+  position: absolute;
+  left: 10px;
+  color: #95a5a6;
+}
+
 .track-uid {
   font-family: monospace;
   font-size: 0.9em;
   color: #7f8c8d;
+}
+
+.track-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
 }
 
 .play-button {
@@ -98,4 +129,66 @@
 .play-button:disabled {
   background-color: #bdc3c7;
   cursor: not-allowed;
+}
+
+.remove-button {
+  background-color: #e74c3c;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.remove-button:hover {
+  background-color: #c0392b;
+  transform: scale(1.05);
+}
+
+/* Responsive styles */
+@media (max-width: 992px) {
+  .tracks-table {
+    font-size: 14px;
+  }
+  
+  .tracks-table th,
+  .tracks-table td {
+    padding: 10px 12px;
+  }
+  
+  .play-button,
+  .remove-button {
+    width: 32px;
+    height: 32px;
+    font-size: 14px;
+  }
+}
+
+@media (max-width: 768px) {
+  .tracks-container {
+    padding: 15px;
+  }
+  
+  .tracks-table {
+    font-size: 13px;
+  }
+  
+  .tracks-table th,
+  .tracks-table td {
+    padding: 8px 10px;
+  }
+  
+  .track-child-name {
+    padding-left: 20px !important;
+  }
+  
+  .track-child-name::before {
+    left: 8px;
+  }
 }
