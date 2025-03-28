@@ -4,6 +4,9 @@ import { useAuth } from '../context/AuthContext';
 import { useMusicPlayer } from '../context/MusicPlayerContext';
 import axios from 'axios';
 import '../styles/PlaylistDetail.css';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faPlay, faPause } from '@fortawesome/free-solid-svg-icons';
+
 
 const PlaylistDetail = () => {
   const { id } = useParams();
@@ -25,12 +28,13 @@ const PlaylistDetail = () => {
   
   // Use the global music player context
   const { 
-    playingTrack, 
+    currentTrack, 
     isPlaying, 
     playTrack: playTrackGlobal, 
-    togglePlayPause, 
-    playNext, 
-    playPrevious 
+    pauseTrack, 
+    resumeTrack, 
+    updatePlaylistTracks,
+    currentPlaylist
   } = useMusicPlayer();
 
   useEffect(() => {
@@ -47,6 +51,11 @@ const PlaylistDetail = () => {
         
         // Update document title with playlist name
         document.title = `${response.data.name} | Mooz`;
+        
+        // Update the current playlist tracks in context if this is the active playlist
+        if (currentPlaylist && currentPlaylist._id === response.data._id) {
+          updatePlaylistTracks(response.data.tracks);
+        }
       } catch (err) {
         console.error('Error fetching playlist:', err);
         
@@ -173,6 +182,7 @@ const PlaylistDetail = () => {
   };
 
   const playTrack = async (track) => {
+    // console.log(track);
     // If not logged in, show login modal
     if (!user) {
       setShowLoginModal(true);
@@ -187,14 +197,13 @@ const PlaylistDetail = () => {
         console.log('Playing track with auto-play enabled, tracks array length:', tracks.length);
         // Track is ready to play, use the global player and pass the tracks array
         // for auto-play functionality
-        playTrackGlobal({
-          id: track.id,
-          name: track.name,
-          author: track.author,
-          spotify_uid: track.spotify_uid,
-          link: response.data.track.link,
-          result: true
-        }, tracks);
+        // Create a complete track object with the link from the response
+        const trackWithLink = {
+          ...track,
+          link: response.data.track.link
+        };
+        console.log(trackWithLink)
+        playTrackGlobal(trackWithLink, playlist, tracks);
       } else if (response.data.status === 'pending') {
         // Track is being processed
         // Use SweetAlert to show a notification
@@ -223,11 +232,11 @@ const PlaylistDetail = () => {
   };
   
   const handlePlayNext = () => {
-    playNext(tracks);
+    // Not implemented
   };
   
   const handlePlayPrevious = () => {
-    playPrevious(tracks);
+    // Not implemented
   };
   
   const copyShareLink = () => {
@@ -402,7 +411,7 @@ const PlaylistDetail = () => {
         ) : (
           <ul className="tracks-list">
             {tracks.map(track => {
-              const isCurrentTrack = playingTrack && playingTrack.id === track.id;
+              const isCurrentTrack = currentTrack && currentTrack.spotify_uid === track.spotify_uid;
               return (
                 <li key={track.id} className={`track-item ${isCurrentTrack ? 'playing' : ''}`}>
                   <div className="track-info">
@@ -413,10 +422,11 @@ const PlaylistDetail = () => {
                   <div className="track-actions">
                     <button 
                       className={`play-track-button ${isCurrentTrack ? 'playing' : ''}`}
-                      onClick={() => isCurrentTrack ? togglePlayPause() : playTrack(track)}
+                      onClick={() => isCurrentTrack ? (isPlaying ? pauseTrack() : resumeTrack()) : playTrack(track)}
                       aria-label={isCurrentTrack ? (isPlaying ? 'Pause' : 'Play') : 'Play'}
                     >
-                      {isCurrentTrack ? (isPlaying ? '⏸️' : '▶️') : '▶️'}
+                      {/* {isCurrentTrack ? (isPlaying ? '⏸️' : '▶️') : '▶️'} */}
+                      {isCurrentTrack ? (isPlaying ? <FontAwesomeIcon icon={faPause} /> : <FontAwesomeIcon icon={faPlay} />) : <FontAwesomeIcon icon={faPlay} />}
                     </button>
                     {isOwner && (
                       <button 
