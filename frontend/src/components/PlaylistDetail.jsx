@@ -68,6 +68,13 @@ const PlaylistDetail = () => {
     };
   }, [id, user]);
 
+  useEffect(() => {
+    if (tracks.length > 0) {
+      console.log('Tracks loaded in PlaylistDetail:', tracks.length);
+      console.log('First track example:', tracks[0]);
+    }
+  }, [tracks]);
+
   const handleSearch = async (e) => {
     e.preventDefault();
     if (!searchQuery.trim()) return;
@@ -177,7 +184,9 @@ const PlaylistDetail = () => {
       const response = await axios.post(`/tracks/play/${track.spotify_uid}`);
       
       if (response.data.status === 'success') {
-        // Track is ready to play, use the global player
+        console.log('Playing track with auto-play enabled, tracks array length:', tracks.length);
+        // Track is ready to play, use the global player and pass the tracks array
+        // for auto-play functionality
         playTrackGlobal({
           id: track.id,
           name: track.name,
@@ -185,7 +194,7 @@ const PlaylistDetail = () => {
           spotify_uid: track.spotify_uid,
           link: response.data.track.link,
           result: true
-        });
+        }, tracks);
       } else if (response.data.status === 'pending') {
         // Track is being processed
         // Use SweetAlert to show a notification

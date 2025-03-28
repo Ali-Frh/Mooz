@@ -38,6 +38,7 @@ const GlobalMusicPlayer = () => {
             // Filter tracks that have a valid link
             const validTracks = response.data.filter(track => track.result && track.link);
             setCurrentPlaylist(validTracks);
+            console.log('GlobalMusicPlayer: Set current playlist with', validTracks.length, 'tracks');
           }
         } catch (error) {
           console.error('Error fetching tracks for playlist:', error);
@@ -63,6 +64,7 @@ const GlobalMusicPlayer = () => {
               if (tracks.some(track => track.spotify_uid === playingTrack.spotify_uid)) {
                 setSourcePlaylistId(playlist.id);
                 setCurrentPlaylist(tracks);
+                console.log('GlobalMusicPlayer: Found source playlist with', tracks.length, 'tracks');
                 return;
               }
             }
@@ -116,7 +118,7 @@ const GlobalMusicPlayer = () => {
           spotify_uid: track.spotify_uid,
           link: response.data.track.link,
           result: true
-        });
+        }, currentPlaylist);
       }
     } catch (error) {
       console.error('Error playing track:', error);
