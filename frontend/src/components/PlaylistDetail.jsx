@@ -120,6 +120,11 @@ const PlaylistDetail = () => {
       setPlaylist(response.data);
       setTracks(response.data.tracks || []);
       
+      // Update the current playlist tracks in context if this is the active playlist
+      if (currentPlaylist && currentPlaylist.id === id) {
+        updatePlaylistTracks(response.data.tracks || []);
+      }
+      
       // Clear search results
       setSearchResults([]);
       setSearchQuery('');
@@ -140,7 +145,13 @@ const PlaylistDetail = () => {
       await axios.delete(`/playlists/${id}/tracks/${trackId}`);
       
       // Update local state
-      setTracks(tracks.filter(track => track.id !== trackId));
+      const updatedTracks = tracks.filter(track => track.id !== trackId);
+      setTracks(updatedTracks);
+      
+      // Update the current playlist tracks in context if this is the active playlist
+      if (currentPlaylist && currentPlaylist.id === id) {
+        updatePlaylistTracks(updatedTracks);
+      }
     } catch (err) {
       console.error('Error removing track from playlist:', err);
       setError('Failed to remove track from playlist. Please try again later.');
@@ -181,8 +192,7 @@ const PlaylistDetail = () => {
     return date.toLocaleDateString();
   };
 
-  const playTrack = async (track) => {
-    // console.log(track);
+  const playTrack = async (track, failedLink = null) => {
     // If not logged in, show login modal
     if (!user) {
       setShowLoginModal(true);
@@ -190,20 +200,42 @@ const PlaylistDetail = () => {
     }
     
     try {
-      // Request the track from the server
-      const response = await axios.post(`/tracks/play/${track.spotify_uid}`);
+      // Request the track from the server, passing the failed link if provided
+      const url = failedLink 
+        ? `/tracks/play/${track.spotify_uid}?failed_link=${encodeURIComponent(failedLink)}` 
+        : `/tracks/play/${track.spotify_uid}`;
+      
+      const response = await axios.post(url);
       
       if (response.data.status === 'success') {
         console.log('Playing track with auto-play enabled, tracks array length:', tracks.length);
-        // Track is ready to play, use the global player and pass the tracks array
-        // for auto-play functionality
         // Create a complete track object with the link from the response
         const trackWithLink = {
           ...track,
           link: response.data.track.link
         };
-        console.log(trackWithLink)
         playTrackGlobal(trackWithLink, playlist, tracks);
+      } else if (response.data.status === 'no_alternatives') {
+        // No more alternative links available for this track
+        import('sweetalert2').then((Swal) => {
+          Swal.default.fire({
+            title: 'Cannot Play Track',
+            text: 'We cannot play this track at the moment. Playing next track...',
+            icon: 'warning',
+            timer: 3000,
+            timerProgressBar: true,
+            showConfirmButton: false
+          });
+        });
+        
+        // Find the next track in the playlist and play it
+        const currentIndex = tracks.findIndex(t => t.spotify_uid === track.spotify_uid);
+        if (currentIndex !== -1 && currentIndex < tracks.length - 1) {
+          // Play the next track
+          setTimeout(() => {
+            playTrack(tracks[currentIndex + 1]);
+          }, 1000); // Small delay before playing next track
+        }
       } else if (response.data.status === 'pending') {
         // Track is being processed
         // Use SweetAlert to show a notification

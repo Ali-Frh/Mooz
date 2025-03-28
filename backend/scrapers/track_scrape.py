@@ -1,3 +1,5 @@
+debug=0
+
 import requests
 from bs4 import BeautifulSoup
 try:
@@ -13,13 +15,27 @@ def grab_mp3(url):
     if any(site in url for site in banlist):
         return {"result": False, "link": ""}
 
-    response = requests.get(url)
+    response = requests.get(url, timeout=7)
+    if debug:
+        print("reached 1")
+
     if response.status_code == 200:
         # anal
         soup = BeautifulSoup(response.text, 'html.parser')
         audio_tags = soup.find_all('audio')
         # links = []
+        if debug:
+            print("reached 2")
         for tag in audio_tags:
+            if debug:
+                print("reached 3")
+            try:
+                src = tag.get("src")
+                if src and src.endswith('.mp3'):
+                    return {"result": True, "link": src}
+            except:
+                pass
+
             try:
                 src = tag.find('source').get('src')
                 # print("reached 1", audio_tags)
@@ -35,6 +51,8 @@ def grab_mp3(url):
         
         links = []
         for i in a_tags:
+            if debug:
+                print("reached 4")
             # print("i is "+str(i))
             try:
                 if '256' in i and i.endswith('.mp3'):
@@ -48,12 +66,16 @@ def grab_mp3(url):
             # priorities = ['192', '160', '128', '96']
             # for priority in priorities:
             for i in a_tags:
+                if debug:
+                    print("reached 5")
                 try:
                     if '128' in i and i.endswith('.mp3'):
                         return {"result": True, "link": i}
                 except:
                     pass
             if len(a_tags) > 0:
+                if debug:
+                    print("reached 6")
                 if a_tags[-1].endswith('.mp3'):
                     return {"result": True, "link": a_tags[-1]}
             
@@ -78,16 +100,21 @@ def grab_song(query):
     for i in results:
         if "دانلود" in i["title"]:
             # print("grabbing from "+i["href"])
-            z = grab_mp3(i["href"])
-            # print("busy")
-            print("grabbed from "+i["href"]+", result was "+str(z["result"]))
-            if z["result"] == True:
-                # print(z["link"])
-                links.append(z["link"])
+            try:
+                z = grab_mp3(i["href"])
+                # print("busy")
+                print("grabbed from "+i["href"]+", result was "+str(z["result"]))
+                if z["result"] == True:
+                    # print(z["link"])
+                    links.append(z["link"])
+            except:
+                pass
         else:
             continue
     return links
 
 if __name__ == "__main__":
-    # print(grab_mp3("https://emusicfa.ir/sasy-marmolk/"))
-    print(grab_song("Nang Be Neyrang To Amir Tataloo"))
+    # global
+    debug=1
+    print(grab_mp3("https://bibis.ir/katy-perry-roar/"))
+    # print(grab_song("Nang Be Neyrang To Amir Tataloo"))

@@ -55,7 +55,7 @@ async def get_track(spotify_uid: str, current_user: User = Depends(get_current_a
     return track
 
 @router.post("/tracks/play/{spotify_uid}")
-async def play_track(spotify_uid: str, background_tasks: BackgroundTasks, current_user: User = Depends(get_current_active_user), db: Session = Depends(get_db)):
+async def play_track(spotify_uid: str, background_tasks: BackgroundTasks, db: Session = Depends(get_db), current_user: User = Depends(get_current_active_user), failed_link: str = None):
     """
     Play a track by Spotify UID. If the track is not in the database or doesn't have a link,
     it will be added to the scraping queue.
@@ -63,14 +63,39 @@ async def play_track(spotify_uid: str, background_tasks: BackgroundTasks, curren
     Args:
         spotify_uid: The Spotify UID of the track
         background_tasks: FastAPI background tasks
-        current_user: The authenticated user (injected by dependency)
         db: Database session (injected by dependency)
+        current_user: The authenticated user (injected by dependency)
+        failed_link: Optional link that failed to play, to get an alternative
         
     Returns:
         dict: Response containing track info and play status
     """
     # Check if track exists in database with a valid link
-    track = db.query(Track).filter(Track.spotify_uid == spotify_uid, Track.result == True).order_by(Track.fails).first()
+    if failed_link:
+        # If a failed link was provided, find an alternative link
+        
+        # First, increment the fails counter for the failed link
+        failed_track = db.query(Track).filter(
+            Track.spotify_uid == spotify_uid,
+            Track.link == failed_link
+        ).first()
+        
+        if failed_track:
+            failed_track.fails += 1
+            db.commit()
+        
+        # Then find an alternative link
+        track = db.query(Track).filter(
+            Track.spotify_uid == spotify_uid, 
+            Track.result == True,
+            Track.link != failed_link
+        ).order_by(Track.fails).first()
+    else:
+        # Normal case - just get the best link
+        track = db.query(Track).filter(
+            Track.spotify_uid == spotify_uid, 
+            Track.result == True
+        ).order_by(Track.fails).first()
     
     # If track exists and has a valid link, return it
     if track and track.link:
@@ -85,6 +110,14 @@ async def play_track(spotify_uid: str, background_tasks: BackgroundTasks, curren
                 "link": track.link,
                 "result": track.result
             }
+        }
+    
+    # If we're here with a failed_link, it means we've run out of alternatives
+    if failed_link:
+        return {
+            "status": "no_alternatives",
+            "message": "No alternative links available for this track",
+            "spotify_uid": spotify_uid
         }
     
     # Get track info from playlist_tracks table if not in tracks table
